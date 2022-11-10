@@ -1,5 +1,6 @@
 
 import java.util.Locale;
+import mySql.myConnection;
 
 
 public class MainReport {
@@ -14,6 +15,7 @@ public class MainReport {
       window = new Window();
       window.Panel(user);
       window.setVisible(true);
+
     }
     public static void PanelTwo(){
         report = new Report();

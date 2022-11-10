@@ -450,4 +450,31 @@ public class myQueries {
         }
         return null;
     }
+    public static float[] Mes(String proyecto,String fecha){
+        if(myConnection.Test()){
+            String sql =    "select\n" +
+                            "    c.class_informe,\n" +
+                            "    sum(iif(a.hora_f>a.hora_i,(cast(DATEDIFF(mi,a.hora_i,a.hora_f) as float)/60),(cast(DATEDIFF(mi,a.hora_i,a.hora_f) as float)/60)+24)) as total\n" +
+                            "from registro_tarea a\n" +
+                            "join registro_turno b on a.id_registro = b.id_registro\n" +
+                            "join tarea c on a.cod_tarea = c.cod_tarea\n" +
+                            "WHERE a.id_registro LIKE '%"+proyecto+"%' and b.fecha BETWEEN DATEFROMPARTS(YEAR('"+fecha+"'),MONTH('"+fecha+"'),1) and '"+fecha+"'\n" +
+                            "group by c.class_informe";
+            float[] retorno = new float[3];
+            try{
+                Statement sto;
+                sto = myConnection.cn.createStatement();
+                ResultSet rso = sto.executeQuery(sql);
+                int aux = 0;
+                while (rso.next()){
+                    
+                    retorno[aux]= rso.getFloat(2);
+                    aux++;
+                } 
+            }catch(SQLException e){System.out.println(e.getMessage());
+            }
+            return retorno;
+        }
+        return null;
+    }
 }

@@ -425,7 +425,7 @@ public class Report extends javax.swing.JPanel {
             String formato2 = ("yyyy/MM");
             SimpleDateFormat sdf3 = new SimpleDateFormat(formato2);
             String id_registroMes = String.valueOf(sdf3.format(date))+"/%"+proyecto+equipo;
-            turnosMes = myQueries.TurnosWhere(id_registroMes,codChimenea,String.valueOf(sdf2.format(date)));
+            //turnosMes = myQueries.TurnosWhere(id_registroMes,codChimenea,String.valueOf(sdf2.format(date)));
             aux = myQueries.Metros(id_registroMes, auxFecha,codChimenea);
             metrosPiloto[3] = aux[0];
             metrosEscariado[3] = aux[1];
@@ -438,7 +438,8 @@ public class Report extends javax.swing.JPanel {
             aux = myQueries.Metros(id_registroTotal, auxFecha,codChimenea);
             metrosPiloto[4] = aux[0];
             metrosEscariado[4] = aux[1];
-            
+
+            turnosMes = myQueries.Mes(proyecto, auxFecha);
             countTotal = myQueries.Cuenta(id_registroTotal,codChimenea,String.valueOf(sdf2.format(date)));
             
             String formato4 = ("yyyy-MM-dd");
@@ -522,7 +523,7 @@ public class Report extends javax.swing.JPanel {
     
     private String[] head;
     private Map<String, double[]> turnos;
-    private Map<String, double[]> turnosMes;
+    float[] turnosMes;
     private Map<String, double[]> turnosTotal;
     
     private double[] metrosPiloto;

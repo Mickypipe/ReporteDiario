@@ -31,7 +31,7 @@ public class NewXls {
              JOptionPane.showMessageDialog(null, e.getMessage());
         }
     }
-    public static void Fill(File file,String[] head , Map<String, double[]> turnos,Map<String, double[]> turnosMes,Map<String, double[]> turnosTotal,double[] piloto,double[] escariado,int countMes,int countTotal,String comA,String comB,double[][] horometro,double[] horometroRedTrax,double[] horometroAuxiliar,String[][] personal){
+    public static void Fill(File file,String[] head , Map<String, double[]> turnos,float[] turnosMes,Map<String, double[]> turnosTotal,double[] piloto,double[] escariado,int countMes,int countTotal,String comA,String comB,double[][] horometro,double[] horometroRedTrax,double[] horometroAuxiliar,String[][] personal){
         try{
             FileInputStream in = new FileInputStream("Src/xls/Informe.xlsx");
             XSSFWorkbook book = new XSSFWorkbook(in);
@@ -43,10 +43,10 @@ public class NewXls {
             page.getRow(7).getCell(9).setCellValue(head[3]);
             page.getRow(8).getCell(9).setCellValue(head[4]);
             page.getRow(9).getCell(9).setCellValue(head[5]);
-            
-            multyFill(page,turnos,turnosMes,turnosTotal,20,14,34,58,true,countMes,countTotal);
-            multyFill(page,turnos,turnosMes,turnosTotal,37,18,55,59,false,0,0);
-            multyFill(page,turnos,turnosMes,turnosTotal,67,7,74,60,false,0,0);
+
+            multyFill(page,turnos,turnosMes[2],turnosTotal,20,14,34,58,true,countMes,countTotal);
+            multyFill(page,turnos,turnosMes[0],turnosTotal,37,18,55,59,false,0,0);
+            multyFill(page,turnos,turnosMes[1],turnosTotal,67,7,74,60,false,0,0);
             
             page.getRow(85).getCell(2).setCellValue(comA);
             page.getRow(92).getCell(2).setCellValue(comB);
@@ -161,12 +161,13 @@ public class NewXls {
              JOptionPane.showMessageDialog(null, e.getMessage());
         }
     }
-    private static void multyFill(XSSFSheet page,Map<String, double[]> turnos,Map<String, double[]> turnosMes,Map<String, double[]> turnosTotal,int inicio, int total,int ultimo,int representa,boolean resta,int countMes,int countTotal){
+    private static void multyFill(XSSFSheet page,Map<String, double[]> turnos,float turnosMes,Map<String, double[]> turnosTotal,int inicio, int total,int ultimo,int representa,boolean resta,int countMes,int countTotal){
         double a = 0;
         double b = 0;
         double dia = 0;
         double turMes = 0;
         double turTotal =0;
+        
         for (int i = 0; i < total; i++) {
             if(turnos.get(page.getRow(inicio+i).getCell(2).getStringCellValue())!=null){
                 double valorA = turnos.get(page.getRow(inicio+i).getCell(2).getStringCellValue())[0];
@@ -181,9 +182,7 @@ public class NewXls {
                 if(valorC!=0){
                     page.getRow(inicio+i).getCell(7).setCellValue(valorC);}
                 dia+=valorC;
-                if(turnosMes.get(page.getRow(inicio+i).getCell(2).getStringCellValue())!=null){
-                     turMes+= turnosMes.get(page.getRow(inicio+i).getCell(2).getStringCellValue())[0];
-                }
+
                 if(turnosTotal.get(page.getRow(inicio+i).getCell(2).getStringCellValue())!=null){
                      turTotal+= turnosTotal.get(page.getRow(inicio+i).getCell(2).getStringCellValue())[0];
                 }
@@ -197,7 +196,7 @@ public class NewXls {
             page.getRow(representa).getCell(6).setCellValue(12.0-b);
             page.getRow(representa).getCell(7).setCellValue(24.0-dia);
             page.getRow(representa).getCell(8).setCellValue(12.0*countTotal-turTotal);
-            page.getRow(representa).getCell(10).setCellValue(12.0*countMes-turMes);
+            page.getRow(representa).getCell(10).setCellValue(turnosMes);
         }else{
             page.getRow(ultimo).getCell(5).setCellValue(a);
             page.getRow(ultimo).getCell(6).setCellValue(b);
@@ -206,7 +205,7 @@ public class NewXls {
             page.getRow(representa).getCell(6).setCellValue(b);
             page.getRow(representa).getCell(7).setCellValue(dia);
             page.getRow(representa).getCell(8).setCellValue(turTotal);
-            page.getRow(representa).getCell(10).setCellValue(turMes);
+            page.getRow(representa).getCell(10).setCellValue(turnosMes);
         }
        
 
