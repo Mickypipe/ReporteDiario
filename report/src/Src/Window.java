@@ -1,3 +1,5 @@
+package Src;
+
 import java.awt.BorderLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
@@ -9,7 +11,7 @@ public class Window extends javax.swing.JFrame {
     public Window() {
         initComponents();
         this.setMinimumSize(new Dimension(680,480));
-        setIconImage(new ImageIcon(getClass().getResource("img/next.png")).getImage());
+        setIconImage(new ImageIcon(getClass().getResource("../img/next.png")).getImage());
         this.setTitle("Informes Vertex");
     }
     //funcion para cambiar de paneles

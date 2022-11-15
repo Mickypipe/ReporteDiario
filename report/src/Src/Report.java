@@ -1,3 +1,5 @@
+package Src;
+
 
 import java.awt.Desktop;
 import java.io.File;
@@ -523,7 +525,7 @@ public class Report extends javax.swing.JPanel {
     
     private String[] head;
     private Map<String, double[]> turnos;
-    float[] turnosMes;
+    private Map<String, double[]> turnosMes;
     private Map<String, double[]> turnosTotal;
     
     private double[] metrosPiloto;

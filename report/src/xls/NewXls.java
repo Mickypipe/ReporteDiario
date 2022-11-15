@@ -31,7 +31,7 @@ public class NewXls {
              JOptionPane.showMessageDialog(null, e.getMessage());
         }
     }
-    public static void Fill(File file,String[] head , Map<String, double[]> turnos,float[] turnosMes,Map<String, double[]> turnosTotal,double[] piloto,double[] escariado,int countMes,int countTotal,String comA,String comB,double[][] horometro,double[] horometroRedTrax,double[] horometroAuxiliar,String[][] personal){
+    public static void Fill(File file,String[] head , Map<String, double[]> turnos, Map<String, double[]> turnosMes,Map<String, double[]> turnosTotal,double[] piloto,double[] escariado,int countMes,int countTotal,String comA,String comB,double[][] horometro,double[] horometroRedTrax,double[] horometroAuxiliar,String[][] personal){
         try{
             FileInputStream in = new FileInputStream("Src/xls/Informe.xlsx");
             XSSFWorkbook book = new XSSFWorkbook(in);
@@ -43,10 +43,28 @@ public class NewXls {
             page.getRow(7).getCell(9).setCellValue(head[3]);
             page.getRow(8).getCell(9).setCellValue(head[4]);
             page.getRow(9).getCell(9).setCellValue(head[5]);
-
-            multyFill(page,turnos,turnosMes[2],turnosTotal,20,14,34,58,true,countMes,countTotal);
-            multyFill(page,turnos,turnosMes[0],turnosTotal,37,18,55,59,false,0,0);
-            multyFill(page,turnos,turnosMes[1],turnosTotal,67,7,74,60,false,0,0);
+            double[] auxMes;
+            if( turnosMes.get("produccion")!=null){
+                auxMes = turnosMes.get("produccion");
+            }else{
+                auxMes = new double[1];
+                auxMes[0] = 0;
+            }
+            multyFill(page,turnos,auxMes[0],turnosTotal,20,14,34,58,true,countMes,countTotal);
+            if( turnosMes.get("interferencia")!=null){
+                auxMes = turnosMes.get("interferencia");
+            }else{
+                auxMes = new double[1];
+                auxMes[0] = 0;
+            }
+            multyFill(page,turnos,auxMes[0],turnosTotal,37,18,55,59,false,0,0);
+            if( turnosMes.get("perforacion")!=null){
+                auxMes = turnosMes.get("perforacion");
+            }else{
+                auxMes = new double[1];
+                auxMes[0] = 0;
+            }
+            multyFill(page,turnos,auxMes[0],turnosTotal,67,7,74,60,false,0,0);
             
             page.getRow(85).getCell(2).setCellValue(comA);
             page.getRow(92).getCell(2).setCellValue(comB);
@@ -161,7 +179,7 @@ public class NewXls {
              JOptionPane.showMessageDialog(null, e.getMessage());
         }
     }
-    private static void multyFill(XSSFSheet page,Map<String, double[]> turnos,float turnosMes,Map<String, double[]> turnosTotal,int inicio, int total,int ultimo,int representa,boolean resta,int countMes,int countTotal){
+    private static void multyFill(XSSFSheet page,Map<String, double[]> turnos,double turnosMes,Map<String, double[]> turnosTotal,int inicio, int total,int ultimo,int representa,boolean resta,int countMes,int countTotal){
         double a = 0;
         double b = 0;
         double dia = 0;

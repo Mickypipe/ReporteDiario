@@ -10,10 +10,29 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class myQueries {
+    public static boolean Usuario(String user,String pass){
+        if(myConnection.Test()){
+            String sql = "SELECT " +
+                        " correo " +
+                        "  FROM rrhh " +
+                        "  where correo = '"+user+"' and password = '"+pass+"'";
+            try{
+                Statement sto;
+                sto = myConnection.cn.createStatement();
+                ResultSet rso = sto.executeQuery(sql);
+                while (rso.next()){
+                    return true;
+                } 
+            }catch(SQLException e){System.out.println(e.getMessage());}
+            return false;
+        }
+        return false;
+    }
+    
     //codigos de proyectos y sus nombres
     public static ArrayList<String[]> Proyecto(){
         if(myConnection.Test()){
-            String sql = "SELECT cod_proyecto , nombre_proyecto from dbo.proyecto where estado = 'Activo'";
+            String sql = "SELECT cod_proyecto , nombre_proyecto from proyecto where estado = 'Activo'";
             ArrayList<String[]> retorno = new ArrayList();
             try{
                 Statement sto;
@@ -53,7 +72,7 @@ public class myQueries {
     //consulta de serie de tabla Equipos
     public static ArrayList<String> Equipo(){
         if(myConnection.Test()){
-            String sql = "SELECT serie from dbo.equipo";
+            String sql = "SELECT serie from equipo";
             ArrayList<String> retorno = new ArrayList();
             try{
                 Statement sto;
@@ -69,7 +88,7 @@ public class myQueries {
     }
     public static String Mandante(String where){
         if(myConnection.Test()){
-            String sql = "SELECT cod_chimenea_mandante from dbo.chimenea where cod_chimenea = '"+where+"'";
+            String sql = "SELECT cod_chimenea_mandante from chimenea where cod_chimenea = '"+where+"'";
             String retorno = "";
             try{
                 Statement sto;
@@ -85,7 +104,7 @@ public class myQueries {
     }
     public static String Metodologia(String where){
         if(myConnection.Test()){
-            String sql = "SELECT metodologia from dbo.chimenea where cod_chimenea = '"+where+"'";
+            String sql = "SELECT metodologia from chimenea where cod_chimenea = '"+where+"'";
             String retorno = "";
             try{
                 Statement sto;
@@ -101,7 +120,7 @@ public class myQueries {
     }
     public static String Mina(String where){
         if(myConnection.Test()){
-            String sql = "SELECT nombre_mina from dbo.chimenea where cod_chimenea = '"+where+"'";
+            String sql = "SELECT nombre_mina from chimenea where cod_chimenea = '"+where+"'";
             String retorno = "";
             try{
                 Statement sto;
@@ -117,7 +136,7 @@ public class myQueries {
     }
     public static int Comprobacion(String turnoA,String turnoB,String chimenea){
         if(myConnection.Test()){
-            String sql = "SELECT count(*) from dbo.registro_turno where id_registro in ('"+turnoA+"','"+turnoB+"') and cod_chimenea = '"+chimenea+"'";
+            String sql = "SELECT count(*) from registro_turno where id_registro in ('"+turnoA+"','"+turnoB+"') and cod_chimenea = '"+chimenea+"'";
             int retorno = 0;
             try{
                 Statement sto;
@@ -134,7 +153,7 @@ public class myQueries {
      public static ArrayList<String[]> Perforacion(String turno,String letra){
         if(myConnection.Test()){
             String sql = " SELECT '"+letra+"',a.descripcion,p.estado,p.hora_i,p.hora_f "
-                       + " from dbo.registro_perforacion p left join dbo.actividad a on (p.cod_actividad = a.cod_actividad) "
+                       + " from registro_perforacion p left join actividad a on (p.cod_actividad = a.cod_actividad) "
                        + " where id_registro = '"+turno+"' ";
             ArrayList<String[]> retorno = new ArrayList();
             try{
@@ -157,7 +176,7 @@ public class myQueries {
     }
      public static String Comentario(String turno,String letra){
         if(myConnection.Test()){
-            String sql =    " SELECT comentario FROM dbo.registro_turno " +
+            String sql =    " SELECT comentario FROM registro_turno " +
                             " where id_registro = '"+turno+"' ";
             String retorno = letra;
             try{
@@ -183,8 +202,8 @@ public class myQueries {
     public static ArrayList<String[]> Tarea(String turno,String letra){
         if(myConnection.Test()){
             String sql = "SELECT '"+letra+"',a.descripcion,t.nombre,r.hora_i,r.hora_f "
-                       + " from dbo.registro_tarea r left join dbo.actividad a on (r.cod_actividad = a.cod_actividad) "
-                       + " left join dbo.tarea t on (r.cod_tarea = t.cod_tarea) "
+                       + " from registro_tarea r left join actividad a on (r.cod_actividad = a.cod_actividad) "
+                       + " left join tarea t on (r.cod_tarea = t.cod_tarea) "
                        + " where id_registro = '"+turno+"' ";
             ArrayList<String[]> retorno = new ArrayList();
             try{
@@ -216,7 +235,7 @@ public class myQueries {
             " case when datediff(minute,r.hora_i,r.hora_f) < 0 then " +
             " datediff(minute,r.hora_i,r.hora_f)+1440 else datediff(minute,r.hora_i,r.hora_f) end " +
             " else 0 end)/60.0 " +
-            " FROM dbo.tarea t left join dbo.registro_tarea  r on(t.cod_tarea=r.cod_tarea) " +
+            " FROM tarea t left join registro_tarea  r on(t.cod_tarea=r.cod_tarea) " +
             " group by t.detale_informe ";
             Map<String, double[]> dictionary = new HashMap<>();
 
@@ -245,8 +264,8 @@ public class myQueries {
                             " case when datediff(minute,r.hora_i,r.hora_f) < 0 then " +
                             " datediff(minute,r.hora_i,r.hora_f)+1440 else datediff(minute,r.hora_i,r.hora_f) end " +
                             " else 0 end)/60.0 " +
-                            " FROM dbo.tarea t left join dbo.registro_tarea  r on(t.cod_tarea=r.cod_tarea) " +
-                            " left join [dbo].[registro_turno] turno on (turno.id_registro=r.id_registro) " +
+                            " FROM tarea t left join registro_tarea  r on(t.cod_tarea=r.cod_tarea) " +
+                            " left join registro_turno turno on (turno.id_registro=r.id_registro) " +
                             " where turno.fecha<='"+fecha+"' " +
                             " group by t.detale_informe ";
             Map<String, double[]> dictionary = new HashMap<>();
@@ -268,8 +287,8 @@ public class myQueries {
     }
     public static double[] Metros(String turno,String fecha,String where){
         if(myConnection.Test()){
-            String sql =    " SELECT  sum(r.piloto),sum(r.escariador) FROM [dbo].[registro_perforacion] r" +
-                            " left join [dbo].[registro_turno] t on (r.id_registro=t.id_registro) " +
+            String sql =    " SELECT  sum(r.piloto),sum(r.escariador) FROM registro_perforacion r" +
+                            " left join registro_turno t on (r.id_registro=t.id_registro) " +
                             " where estado = 'terminado' and r.id_registro like '"+turno+"' and t.fecha <= '"+fecha+"' and t.cod_chimenea = '"+where+"'";
             double[] retorno = new double[2];
             try{
@@ -289,7 +308,7 @@ public class myQueries {
      public static int Cuenta(String turno,String where,String fecha){
         if(myConnection.Test()){
             String sql =    " SELECT  count(*) FROM  " +
-                            " [dbo].[registro_turno]  " +
+                            " registro_turno  " +
                             " where id_registro like '"+turno+"' and fecha <= '"+fecha+"' and cod_chimenea = '"+where+"' ";
             int retorno = 0;
             try{
@@ -450,26 +469,41 @@ public class myQueries {
         }
         return null;
     }
-    public static float[] Mes(String proyecto,String fecha){
+    public static Map<String, double[]> Mes(String proyecto,String fecha){
         if(myConnection.Test()){
             String sql =    "select\n" +
                             "    c.class_informe,\n" +
-                            "    sum(iif(a.hora_f>a.hora_i,(cast(DATEDIFF(mi,a.hora_i,a.hora_f) as float)/60),(cast(DATEDIFF(mi,a.hora_i,a.hora_f) as float)/60)+24)) as total\n" +
+                            "    case\n" +
+                            "        when c.class_informe = 'interferencia' then\n" +
+                            "        sum(iif(a.hora_f>a.hora_i,(cast(DATEDIFF(mi,a.hora_i,a.hora_f) as float)/60),(cast(DATEDIFF(mi,a.hora_i,a.hora_f) as float)/60)+24))\n" +
+                            "        when c.class_informe = 'perforacion' then\n" +
+                            "        sum(iif(a.hora_f>a.hora_i,(cast(DATEDIFF(mi,a.hora_i,a.hora_f) as float)/60),(cast(DATEDIFF(mi,a.hora_i,a.hora_f) as float)/60)+24))\n" +
+                            "        when c.class_informe = 'produccion' then\n" +
+                            "        (\n" +
+                            "            select\n" +
+                            "            sum(iif(a.hora_f>a.hora_i,(cast(DATEDIFF(mi,a.hora_i,a.hora_f) as float)/60),(cast(DATEDIFF(mi,a.hora_i,a.hora_f) as float)/60)+24))\n" +
+                            "            from registro_tarea a\n" +
+                            "            join registro_turno b on a.id_registro = b.id_registro\n" +
+                            "            join tarea c on a.cod_tarea = c.cod_tarea\n" +
+                            "            WHERE a.id_registro LIKE '%"+proyecto+"%' and b.fecha BETWEEN DATEFROMPARTS(YEAR('"+fecha+"'),MONTH('"+fecha+"'),1) and '"+fecha+"' and c.class_informe in ('interferencia','perforacion')\n" +
+                            "        )\n" +
+                            "    end as total\n" +
                             "from registro_tarea a\n" +
                             "join registro_turno b on a.id_registro = b.id_registro\n" +
                             "join tarea c on a.cod_tarea = c.cod_tarea\n" +
                             "WHERE a.id_registro LIKE '%"+proyecto+"%' and b.fecha BETWEEN DATEFROMPARTS(YEAR('"+fecha+"'),MONTH('"+fecha+"'),1) and '"+fecha+"'\n" +
                             "group by c.class_informe";
-            float[] retorno = new float[3];
+            Map<String, double[]> retorno = new HashMap<>();
             try{
                 Statement sto;
                 sto = myConnection.cn.createStatement();
                 ResultSet rso = sto.executeQuery(sql);
-                int aux = 0;
+                
                 while (rso.next()){
-                    
-                    retorno[aux]= rso.getFloat(2);
-                    aux++;
+                    double[] aux = new double[1];
+                    aux[0] = rso.getFloat(2);
+                    retorno.put(rso.getString(1), aux) ;
+
                 } 
             }catch(SQLException e){System.out.println(e.getMessage());
             }
