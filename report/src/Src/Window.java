@@ -14,6 +14,7 @@ public class Window extends javax.swing.JFrame {
         setIconImage(new ImageIcon(getClass().getResource("../img/next.png")).getImage());
         this.setTitle("Informes Vertex");
     }
+    
     //funcion para cambiar de paneles
     public void Panel(JPanel panel){
         panel.setSize(windowPanel.getWidth(),windowPanel.getHeight());

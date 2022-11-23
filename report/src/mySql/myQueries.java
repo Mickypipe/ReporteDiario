@@ -70,9 +70,9 @@ public class myQueries {
         return null;
     }
     //consulta de serie de tabla Equipos
-    public static ArrayList<String> Equipo(){
+    public static ArrayList<String> Equipo(String proyecto){
         if(myConnection.Test()){
-            String sql = "SELECT serie from equipo";
+            String sql = "SELECT serie from equipo where cod_proyecto = '"+proyecto+"'";
             ArrayList<String> retorno = new ArrayList();
             try{
                 Statement sto;
@@ -86,6 +86,7 @@ public class myQueries {
         }
         return null;
     }
+    
     public static String Mandante(String where){
         if(myConnection.Test()){
             String sql = "SELECT cod_chimenea_mandante from chimenea where cod_chimenea = '"+where+"'";
@@ -305,6 +306,7 @@ public class myQueries {
         }
         return null;
     }
+    
      public static int Cuenta(String turno,String where,String fecha){
         if(myConnection.Test()){
             String sql =    " SELECT  count(*) FROM  " +
