@@ -18,6 +18,7 @@ import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
+import xls.Informe;
 
 public class Report extends javax.swing.JPanel {
 
@@ -314,144 +315,256 @@ public class Report extends javax.swing.JPanel {
             labelFecha.setText("Fecha Informe : ");
             
         }else{
+            
             jTextField1.setText("");
             
-            String proyecto = codProyecto.get(comboProyectos.getSelectedIndex()-1);
-            String equipo = comboEquipo.getSelectedItem().toString();
-            
+            String proyecto = codProyecto.get(comboProyectos.getSelectedIndex()-1); //cod proyecto
+            String equipo = comboEquipo.getSelectedItem().toString();               //equipo
             Date date = jDateChooser.getDate();
-            SimpleDateFormat sdf1 = new SimpleDateFormat("dd/MM/yyyy");
-            String fnacim = String.valueOf(sdf1.format(date));
-            
-            String fecha = fnacim;
-            
-            
-            
-            metrosPiloto = new double[5];
-            metrosEscariado = new double[5];
-            //sql------------------------------------------------------------------
             String formato = ("yyyy/MM/dd");
-            SimpleDateFormat sdf2 = new SimpleDateFormat(formato);
-            String auxFecha = String.valueOf(sdf2.format(date));
-            String id_registroA = String.valueOf(sdf2.format(date))+"A"+proyecto+equipo;
+            SimpleDateFormat sdfConsultas = new SimpleDateFormat(formato);
+            String fecha = String.valueOf(sdfConsultas.format(date));            //fecha
+            String id_registroA = String.valueOf(fecha)+"A"+proyecto+equipo;     //registro A
+            String id_registroB = String.valueOf(fecha)+"B"+proyecto+equipo;     //registro B 
+            String codChimenea = myQueries.Chimenea(id_registroA);                //chimenea
+            String metodologia = myQueries.Metodologia(codChimenea);
+
+            //llenado del head del informe
+            boolean perforacion= true;
+            if(metodologia.equals("BLINDAJE")){
+                perforacion = false;
+            }
+            datos = new Informe(perforacion);
             
-            String codChimenea = myQueries.Chimenea(id_registroA);
+            datos.proyecto = proyecto;
+            datos.descripcion = metodologia;
+            datos.equipo = equipo;
+            datos.faena = myQueries.Mina(codChimenea);
+            datos.chimenea = myQueries.Mandante(codChimenea);
+            SimpleDateFormat sdfInforme = new SimpleDateFormat("dd/MM/yyyy");
+            datos.fechaInforme = String.valueOf(sdfInforme.format(date));
             
-            String descripcion = myQueries.Metodologia(codChimenea);
-            String faena = myQueries.Mina(codChimenea);
-            String chimenea = myQueries.Mandante(codChimenea);
-            
-            labelProyecto.setText("Proyecto      : "+proyecto);
-            labelDescripcion.setText("Descripcion  : "+descripcion);
-            labelEquipo.setText("Equipo         : "+equipo);
-            labelFaena.setText("Faena             : "+faena);
-            labelChimenea.setText("Chimenea        : "+chimenea);
-            labelFecha.setText("Fecha Informe : "+fecha);
-            
-            head = new String[6];
-            head[0]=proyecto;
-            head[1]=descripcion;
-            head[2]=equipo;
-            head[3]=faena;
-            head[4]=chimenea;
-            head[5]=fecha;
-            
-            
-            
-            
-            double[] aux = myQueries.Metros(id_registroA, auxFecha,codChimenea);
-            metrosPiloto[0] = aux[0];
-            metrosEscariado[0] = aux[1];
-            
-            String id_registroB = String.valueOf(sdf2.format(date))+"B"+proyecto+equipo;
-            aux = myQueries.Metros(id_registroB, auxFecha,codChimenea);
-            metrosPiloto[1] = aux[0];
-            metrosEscariado[1] = aux[1];
-            
-            metrosPiloto[2] = aux[0];
-            metrosEscariado[2] = aux[1];
-            int count = myQueries.Comprobacion(id_registroA, id_registroB,codChimenea);
-            
-            horometro = new double[2][2];
-            horometro[0]=myQueries.Horometro(id_registroA, equipo);
-            
-            horometro[1]=myQueries.Horometro(id_registroB, equipo);
-            
-            horometroRedTrax =new double[3];
-            horometroRedTrax[0]=myQueries.HorometroRedTrackIni(id_registroA);
-            horometroRedTrax[1]=myQueries.HorometroRedTrackFin(id_registroB);
-            horometroRedTrax[2]=horometroRedTrax[1]-horometroRedTrax[0];
+
+            labelProyecto.setText("Proyecto      : "+datos.proyecto);
+            labelDescripcion.setText("Descripcion  : "+datos.descripcion);
+            labelEquipo.setText("Equipo         : "+datos.equipo);
+            labelFaena.setText("Faena             : "+datos.faena);
+            labelChimenea.setText("Chimenea        : "+datos.chimenea);
+            labelFecha.setText("Fecha Informe : "+datos.fechaInforme);
+ 
+            //fin del head
             
             
-            horometroAuxiliar = new double[3];
-            horometroAuxiliar[0]=myQueries.HorometroAuxiliarIni(id_registroA);
-            horometroAuxiliar[1]=myQueries.HorometroAuxiliarFin(id_registroB);
-            horometroAuxiliar[2]=horometroAuxiliar[1]-horometroAuxiliar[0];
+            //metros perforados piloto y escariador diario
+            if(datos.perforacion){
+            double[] aux = myQueries.MetrosPilotoEscariador(id_registroA, fecha,codChimenea);
+            datos.metrosPiloto[0] = aux[0];
+            datos.metrosEscariado[0] = aux[1];
             
-            personal = new String[2][5];
+            aux = myQueries.MetrosPilotoEscariador(id_registroB, fecha,codChimenea);
+            datos.metrosPiloto[1] = aux[0];
+            datos.metrosEscariado[1] = aux[1];
             
-            personal[0][0]=myQueries.Personal(id_registroA,"Supervisor Raisebore");
-            personal[0][1]=myQueries.Personal(id_registroA,"Operador Raisebore");
+            datos.metrosPiloto[2] = datos.metrosPiloto[1]+datos.metrosPiloto[0];
+            datos.metrosEscariado[2] = datos.metrosEscariado[1]+datos.metrosEscariado[0];
+            //fin metros perforados piloto y escariador diario
+            
+            //metros piloto y escariado total
+            String id_registroTotal = "%"+proyecto+equipo;
+            aux = myQueries.MetrosPilotoEscariador(id_registroTotal, fecha,codChimenea);
+            datos.metrosPiloto[3] = aux[0];
+            datos.metrosEscariado[3] = aux[1];
+            
+            //fin metros piloto y escariado total
+            
+            
+            //metros piloto y escariador mes
+            String formatoMes = ("yyyy/MM");
+            SimpleDateFormat sdfMes = new SimpleDateFormat(formatoMes);
+            String id_registroMes = String.valueOf(sdfMes.format(date))+"/%"+proyecto+equipo;
+            aux = myQueries.MetrosPilotoEscariador(id_registroMes, fecha,codChimenea);
+            datos.metrosPiloto[4] = aux[0];
+            datos.metrosEscariado[4] = aux[1];
+            }
+            //fin metros piloto y escariado mes
+            else{
+                double[] aux;
+                
+                aux = myQueries.MetrosBlindajeDia(id_registroA);
+                datos.metrosPiloto[0] = aux[0];
+                datos.metrosEscariado[0] = aux[1];
+
+                aux = myQueries.MetrosBlindajeDia(id_registroB);
+                datos.metrosPiloto[1] = aux[0];
+                datos.metrosEscariado[1] = aux[1];
+                
+                datos.metrosPiloto[2] = datos.metrosPiloto[1]+datos.metrosPiloto[0];
+                datos.metrosEscariado[2] = datos.metrosEscariado[1]+datos.metrosEscariado[0];
+                //acumulado
+                aux = myQueries.MetrosBlindajeChimenea(proyecto, equipo,codChimenea);
+                datos.metrosPiloto[3] = aux[0];
+                datos.metrosEscariado[3] = aux[1];
+                
+                //mes blindaje
+                aux = myQueries.MetrosBlindajeMes(proyecto, fecha,equipo);
+                datos.metrosPiloto[4] = aux[0];
+                datos.metrosEscariado[4] = aux[1];
+            }
+            
+            //horometro simple
+            datos.horometro[0]=myQueries.Horometro(id_registroA, equipo);            
+            datos.horometro[1]=myQueries.Horometro(id_registroB, equipo);
+            //fin horometro simple
+            
+            
+            //horometro redtrax
+            if(datos.perforacion){
+            datos.horometroRedTrax[0]=myQueries.HorometroRedTrackIni(id_registroA);
+            datos.horometroRedTrax[1]=myQueries.HorometroRedTrackFin(id_registroB);
+            datos.horometroRedTrax[2]=datos.horometroRedTrax[1]-datos.horometroRedTrax[0];
+            }            
+            //fin horometro redtrax
+            
+            
+            //horometro manipulador
+            datos.horometroAuxiliar[0]=myQueries.HorometroAuxiliarIni(id_registroA);
+            datos.horometroAuxiliar[1]=myQueries.HorometroAuxiliarFin(id_registroB);
+            datos.horometroAuxiliar[2]=datos.horometroAuxiliar[1]-datos.horometroAuxiliar[0];
+            //fin horometro manipulador
+            
+            //personal turno A
+            String persona;
+            
+            persona = myQueries.Personal(id_registroA,"Supervisor Raisebore");
+            datos.Personal(persona,true,0);
+            persona = myQueries.Personal(id_registroA,"Operador Raisebore");
+            datos.Personal(persona,true,1);
+            persona = myQueries.Personal(id_registroA,"Operador Equipo de Apoyo");
+            datos.Personal(persona,true,4);
+            
+            //personal asistente turno A
             ArrayList<String> asistentes = myQueries.PersonalAsistente(id_registroA,"Asistente Raisebore");
+            String personaAux;
             if(!asistentes.isEmpty()){
-            personal[0][2]=myQueries.PersonalAsistente(id_registroA,"Asistente Raisebore").get(0);}
-            else{
-                personal[0][2]="";
+                 personaAux= asistentes.get(0);
+            }else{
+                personaAux="";
             }
+            datos.Personal(personaAux, true, 2);
             if(asistentes.size()>1){
-            personal[0][3]=myQueries.PersonalAsistente(id_registroA,"Asistente Raisebore").get(1);}
-            else{
-                personal[0][3]="";
+                personaAux = asistentes.get(1);
+            }else{
+                personaAux="";
             }
-            personal[0][4]=myQueries.Personal(id_registroA,"Operador Equipo de Apoyo");
+            datos.Personal(personaAux, true, 3);
             
-            personal[1][0]=myQueries.Personal(id_registroB,"Supervisor Raisebore");
-            personal[1][1]=myQueries.Personal(id_registroB,"Operador Raisebore");
+            //personal turno B
+            persona = myQueries.Personal(id_registroB,"Supervisor Raisebore");
+            datos.Personal(persona,false,0);
+            persona = myQueries.Personal(id_registroB,"Operador Raisebore");
+            datos.Personal(persona,false,1);
+            persona = myQueries.Personal(id_registroB,"Operador Equipo de Apoyo");
+            datos.Personal(persona,false,4);
+            
+            //personal asistente turno B
             asistentes = myQueries.PersonalAsistente(id_registroB,"Asistente Raisebore");
             if(!asistentes.isEmpty()){
-            personal[1][2]=myQueries.PersonalAsistente(id_registroB,"Asistente Raisebore").get(0);}
-            else{
-                personal[1][2]="";
+                 personaAux= asistentes.get(0);
+            }else{
+                personaAux="";
             }
+            datos.Personal(personaAux, false, 2);
             if(asistentes.size()>1){
-            personal[1][3]=myQueries.PersonalAsistente(id_registroB,"Asistente Raisebore").get(1);}
-            else{
-                personal[1][3]="";
+                personaAux = asistentes.get(1);
+            }else{
+                personaAux="";
             }
-            personal[1][4]=myQueries.Personal(id_registroB,"Operador Equipo de Apoyo");
+            datos.Personal(personaAux, false, 3);
+            //fin personal
             
             
-            String formato2 = ("yyyy/MM");
-            SimpleDateFormat sdf3 = new SimpleDateFormat(formato2);
-            String id_registroMes = String.valueOf(sdf3.format(date))+"/%"+proyecto+equipo;
-            //turnosMes = myQueries.TurnosWhere(id_registroMes,codChimenea,String.valueOf(sdf2.format(date)));
-            aux = myQueries.Metros(id_registroMes, auxFecha,codChimenea);
-            metrosPiloto[3] = aux[0];
-            metrosEscariado[3] = aux[1];
-  
-            countMes = myQueries.Cuenta(id_registroMes,codChimenea,String.valueOf(sdf2.format(date)));
+            
+            datos.tareasDia = myQueries.Turnos(id_registroA, id_registroB);
+            
+            Map<String, double[]> diccionarioAux;
+            if(datos.perforacion){
+                diccionarioAux = myQueries.MesPerforacion(proyecto, fecha);
+                if(diccionarioAux.get("produccion")!=null){
+                    datos.tareasMes[0]=diccionarioAux.get("produccion")[0];
+                }else{
+                    datos.tareasMes[0]=0;
+                }
+                if(diccionarioAux.get("interferencia")!=null){
+                    datos.tareasMes[1]=diccionarioAux.get("interferencia")[0];
+                }else{
+                    datos.tareasMes[1]=0;
+                }
+                if(diccionarioAux.get("perforacion")!=null){
+                    datos.tareasMes[2]=diccionarioAux.get("perforacion")[0];
+                }else{
+                    datos.tareasMes[2]=0;
+                }
+            }else{
+                diccionarioAux = myQueries.MesBlindaje(proyecto, fecha,equipo);
+                if(diccionarioAux.get("produccion")!=null){
+                    datos.tareasMes[0]=diccionarioAux.get("produccion")[0];
+                }else{
+                    datos.tareasMes[0]=0;
+                }
+                if(diccionarioAux.get("interferencia")!=null){
+                    datos.tareasMes[1]=diccionarioAux.get("interferencia")[0];
+                }else{
+                    datos.tareasMes[1]=0;
+                }
+                if(diccionarioAux.get("blindaje")!=null){
+                    datos.tareasMes[2]=diccionarioAux.get("blindaje")[0];
+                }else{
+                    datos.tareasMes[2]=0;
+                }
+            }
+            if(datos.perforacion){
+                diccionarioAux = myQueries.ChimeneaPerforacion(proyecto, fecha, codChimenea, equipo);
+                if(diccionarioAux.get("produccion")!=null){
+                    datos.tareasTotal[0]=diccionarioAux.get("produccion")[0];
+                }else{
+                    datos.tareasTotal[0]=0;
+                }
+                if(diccionarioAux.get("interferencia")!=null){
+                    datos.tareasTotal[1]=diccionarioAux.get("interferencia")[0];
+                }else{
+                    datos.tareasTotal[1]=0;
+                }
+                if(diccionarioAux.get("perforacion")!=null){
+                    datos.tareasTotal[2]=diccionarioAux.get("perforacion")[0];
+                }else{
+                    datos.tareasTotal[2]=0;
+                }
+            }else{
+                diccionarioAux = myQueries.ChimeneaBlindaje(proyecto, fecha, codChimenea, equipo);
+                if(diccionarioAux.get("produccion")!=null){
+                    datos.tareasTotal[0]=diccionarioAux.get("produccion")[0];
+                }else{
+                    datos.tareasTotal[0]=0;
+                }
+                if(diccionarioAux.get("interferencia")!=null){
+                    datos.tareasTotal[1]=diccionarioAux.get("interferencia")[0];
+                }else{
+                    datos.tareasTotal[1]=0;
+                }
+                if(diccionarioAux.get("blindaje")!=null){
+                    datos.tareasTotal[2]=diccionarioAux.get("blindaje")[0];
+                }else{
+                    datos.tareasTotal[2]=0;
+                }
+            }
 
-            
-            String id_registroTotal = "%"+proyecto+equipo;
-            turnosTotal = myQueries.TurnosWhere(id_registroTotal,codChimenea,String.valueOf(sdf2.format(date)));
-            aux = myQueries.Metros(id_registroTotal, auxFecha,codChimenea);
-            metrosPiloto[4] = aux[0];
-            metrosEscariado[4] = aux[1];
-
-            turnosMes = myQueries.Mes(proyecto, auxFecha);
-            countTotal = myQueries.Cuenta(id_registroTotal,codChimenea,String.valueOf(sdf2.format(date)));
-            
-            String formato4 = ("yyyy-MM-dd");
-            SimpleDateFormat sdf4 = new SimpleDateFormat(formato4);
-            sug = String.valueOf(sdf4.format(date)) +" "+ equipo;
-            //comentarioA = mySql.myQueries.Comentario(id_registroA , "TURNO A Operación: ");
-            //comentarioB = mySql.myQueries.Comentario(id_registroB , "TURNO B Operación: ");
-            //chimenea
-            //proyecto
-            //Date sqlFecha = new java.sql.Date(jDateChooser.getDate().getTime());
-            turnos = myQueries.Turnos(id_registroA, id_registroB);
-            jTextField1.setText("Turnos encontrados: "+count);
-            if(count>=1){
+            int turnoAyB = myQueries.CuentaTurnosAB(id_registroA, id_registroB,codChimenea);
+            jTextField1.setText("Turnos encontrados: "+turnoAyB);
+            if(turnoAyB>=1){
+               String formatoSugerido = ("yyyy-MM-dd");
+               SimpleDateFormat sdfSug = new SimpleDateFormat(formatoSugerido);
+               sug = String.valueOf(sdfSug.format(date))+" "+equipo;
+                
                ArrayList<String[]> A = myQueries.Perforacion(id_registroA,"A");
                ArrayList<String[]> B = myQueries.Perforacion(id_registroB,"B");
                A.addAll(B);
@@ -514,34 +627,14 @@ public class Report extends javax.swing.JPanel {
         model2.addColumn("Hora Final");
         tableTarea.setModel(model2); 
     }
-    
-    private String sug="";
-    
-    private String comentarioA;
-    private String comentarioB;
-    
-    private String[] head;
-    private Map<String, double[]> turnos;
-    private Map<String, double[]> turnosMes;
-    private Map<String, double[]> turnosTotal;
-    
-    private double[] metrosPiloto;
-    private double[] metrosEscariado;
-
-    private int countTotal;
-    private int countMes;
-    
-    double[][] horometro;
-    double[] horometroRedTrax;
-    
-    double[] horometroAuxiliar;
-    String[][] personal;
+    private Informe datos;
+    private String sug;
     
     private void guardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_guardarActionPerformed
         
-        xls.NewXls.Creation();
+        xls.NewXls.Creation(datos.perforacion);
         File file = Guardar();
-        xls.NewXls.Fill(file,head,turnos,turnosMes,turnosTotal,metrosPiloto,metrosEscariado,countMes,countTotal,comentarioA,comentarioB,horometro,horometroRedTrax,horometroAuxiliar,personal);
+        xls.NewXls.Fill(file,datos);
         
         
         

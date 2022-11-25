@@ -19,9 +19,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class NewXls {
    
-    public static void Creation(){
+    public static void Creation(boolean perforacion){
          try{
-            FileInputStream in = new FileInputStream("Src/xls/template.xlsx");
+            FileInputStream in;
+            if(perforacion){
+                in = new FileInputStream("Src/xls/template.xlsx");
+            }else{
+                in = new FileInputStream("Src/xls/Blindaje.xlsx");
+            }  
             XSSFWorkbook book = new XSSFWorkbook(in);
             FileOutputStream out = new FileOutputStream("Src/xls/Informe.xlsx");
             book.write(out);
@@ -31,137 +36,119 @@ public class NewXls {
              JOptionPane.showMessageDialog(null, e.getMessage());
         }
     }
-    public static void Fill(File file,String[] head , Map<String, double[]> turnos, Map<String, double[]> turnosMes,Map<String, double[]> turnosTotal,double[] piloto,double[] escariado,int countMes,int countTotal,String comA,String comB,double[][] horometro,double[] horometroRedTrax,double[] horometroAuxiliar,String[][] personal){
+    public static void Fill(File file,Informe datos){
         try{
             FileInputStream in = new FileInputStream("Src/xls/Informe.xlsx");
+
             XSSFWorkbook book = new XSSFWorkbook(in);
             XSSFSheet page = book.getSheetAt(0);
+           
+            page.getRow(7).getCell(4).setCellValue(datos.proyecto);
+            page.getRow(8).getCell(4).setCellValue(datos.descripcion);
+            page.getRow(9).getCell(4).setCellValue(datos.equipo);
+            page.getRow(7).getCell(9).setCellValue(datos.faena);
+            page.getRow(8).getCell(9).setCellValue(datos.chimenea);
+            page.getRow(9).getCell(9).setCellValue(datos.fechaInforme);
+          
+            double[] produccion;
+            double[] efectivas;
+            if(datos.perforacion){
+            produccion=multyFill(page,datos.tareasDia,20,14,34,58,datos.tareasTotal[0],datos.tareasMes[0],true);
+            multyFill(page,datos.tareasDia,37,18,55,59,datos.tareasTotal[1],datos.tareasMes[1],false);
+            efectivas=multyFill(page,datos.tareasDia,67,7,74,60,datos.tareasTotal[2],datos.tareasMes[2],false);
+            }else{  
+            produccion=multyFill(page,datos.tareasDia,20,14,34,59,datos.tareasTotal[0],datos.tareasMes[0],true);
+            multyFill(page,datos.tareasDia,37,19,56,60,datos.tareasTotal[1],datos.tareasMes[1],false);
+            efectivas=multyFill(page,datos.tareasDia,68,4,72,61,datos.tareasTotal[2],datos.tareasMes[2],false);
+            }
+             
+            int suma = 1;
+            if(datos.perforacion){
+                suma =0;
+            }
+            page.getRow(61+suma).getCell(5).setCellValue(datos.metrosPiloto[0]);
+            page.getRow(61+suma).getCell(6).setCellValue(datos.metrosPiloto[1]);
+            page.getRow(61+suma).getCell(7).setCellValue(datos.metrosPiloto[2]);
+            page.getRow(61+suma).getCell(8).setCellValue(datos.metrosPiloto[3]);
+            page.getRow(61+suma).getCell(10).setCellValue(datos.metrosPiloto[4]);
             
-            page.getRow(7).getCell(4).setCellValue(head[0]);
-            page.getRow(8).getCell(4).setCellValue(head[1]);
-            page.getRow(9).getCell(4).setCellValue(head[2]);
-            page.getRow(7).getCell(9).setCellValue(head[3]);
-            page.getRow(8).getCell(9).setCellValue(head[4]);
-            page.getRow(9).getCell(9).setCellValue(head[5]);
-            double[] auxMes;
-            if( turnosMes.get("produccion")!=null){
-                auxMes = turnosMes.get("produccion");
+            page.getRow(62+suma).getCell(5).setCellValue(datos.metrosEscariado[0]);
+            page.getRow(62+suma).getCell(6).setCellValue(datos.metrosEscariado[1]);
+            page.getRow(62+suma).getCell(7).setCellValue(datos.metrosEscariado[2]);
+            page.getRow(62+suma).getCell(8).setCellValue(datos.metrosEscariado[3]);
+            page.getRow(62+suma).getCell(10).setCellValue(datos.metrosEscariado[4]);
+            
+            page.getRow(19).getCell(10).setCellValue(datos.horometro[0][0]);
+            page.getRow(19).getCell(11).setCellValue(datos.horometro[0][1]);
+            
+            page.getRow(20).getCell(10).setCellValue(datos.horometro[1][0]);
+            page.getRow(20).getCell(11).setCellValue(datos.horometro[1][1]);
+                 
+            if(datos.perforacion){
+                page.getRow(23).getCell(10).setCellValue(datos.horometroRedTrax[0]);
+                page.getRow(24).getCell(10).setCellValue(datos.horometroRedTrax[1]);
+                page.getRow(25).getCell(10).setCellValue(datos.horometroRedTrax[2]);
+
+                page.getRow(30).getCell(10).setCellValue(datos.horometroAuxiliar[0]);
+                page.getRow(31).getCell(10).setCellValue(datos.horometroAuxiliar[1]);
+                page.getRow(32).getCell(10).setCellValue(datos.horometroAuxiliar[2]);
             }else{
-                auxMes = new double[1];
-                auxMes[0] = 0;
+                page.getRow(23).getCell(10).setCellValue(datos.horometroAuxiliar[0]);
+                page.getRow(24).getCell(10).setCellValue(datos.horometroAuxiliar[1]);
+                page.getRow(25).getCell(10).setCellValue(datos.horometroAuxiliar[2]);
             }
-            multyFill(page,turnos,auxMes[0],turnosTotal,20,14,34,58,true,countMes,countTotal);
-            if( turnosMes.get("interferencia")!=null){
-                auxMes = turnosMes.get("interferencia");
-            }else{
-                auxMes = new double[1];
-                auxMes[0] = 0;
+            
+            
+            suma = -2;
+            if(datos.perforacion){
+                suma =0;
             }
-            multyFill(page,turnos,auxMes[0],turnosTotal,37,18,55,59,false,0,0);
-            if( turnosMes.get("perforacion")!=null){
-                auxMes = turnosMes.get("perforacion");
-            }else{
-                auxMes = new double[1];
-                auxMes[0] = 0;
+            page.getRow(77+suma).getCell(5).setCellValue(datos.personalA[0]);
+            page.getRow(78+suma).getCell(5).setCellValue(datos.personalA[1]);
+            page.getRow(79+suma).getCell(5).setCellValue(datos.personalA[2]);
+            page.getRow(80+suma).getCell(5).setCellValue(datos.personalA[3]);
+            page.getRow(81+suma).getCell(5).setCellValue(datos.personalA[4]);
+            
+            page.getRow(77+suma).getCell(6).setCellValue(datos.personalB[0]);
+            page.getRow(78+suma).getCell(6).setCellValue(datos.personalB[1]);
+            page.getRow(79+suma).getCell(6).setCellValue(datos.personalB[2]);
+            page.getRow(80+suma).getCell(6).setCellValue(datos.personalB[3]);
+            page.getRow(81+suma).getCell(6).setCellValue(datos.personalB[4]);
+            
+            page.getRow(82+suma).getCell(5).setCellValue(datos.countPersonalA);
+            page.getRow(82+suma).getCell(6).setCellValue(datos.countPersonalB);
+
+            for (int i = 0; i < 6; i++) {
+                page.getRow(77+i+suma).getCell(7).setCellValue(datos.countHorasPersonal[i]);
             }
-            multyFill(page,turnos,auxMes[0],turnosTotal,67,7,74,60,false,0,0);
             
-            page.getRow(85).getCell(2).setCellValue(comA);
-            page.getRow(92).getCell(2).setCellValue(comB);
-            
-            page.getRow(61).getCell(5).setCellValue(piloto[0]);
-            page.getRow(61).getCell(6).setCellValue(piloto[1]);
-            page.getRow(61).getCell(7).setCellValue(piloto[2]);
-            page.getRow(61).getCell(8).setCellValue(piloto[3]);
-            page.getRow(61).getCell(10).setCellValue(piloto[4]);
-            
-            page.getRow(62).getCell(5).setCellValue(escariado[0]);
-            page.getRow(62).getCell(6).setCellValue(escariado[1]);
-            page.getRow(62).getCell(7).setCellValue(escariado[2]);
-            page.getRow(62).getCell(8).setCellValue(escariado[3]);
-            page.getRow(62).getCell(10).setCellValue(escariado[4]);
-            
-            page.getRow(19).getCell(10).setCellValue(horometro[0][0]);
-            page.getRow(19).getCell(11).setCellValue(horometro[0][1]);
-            
-            page.getRow(20).getCell(10).setCellValue(horometro[1][0]);
-            page.getRow(20).getCell(11).setCellValue(horometro[1][1]);
-                    
-            page.getRow(23).getCell(10).setCellValue(horometroRedTrax[0]);
-            page.getRow(24).getCell(10).setCellValue(horometroRedTrax[1]);
-            page.getRow(25).getCell(10).setCellValue(horometroRedTrax[2]);
-            
-            page.getRow(30).getCell(10).setCellValue(horometroAuxiliar[0]);
-            page.getRow(31).getCell(10).setCellValue(horometroAuxiliar[1]);
-            page.getRow(32).getCell(10).setCellValue(horometroAuxiliar[2]);
-            
-            
-            page.getRow(77).getCell(5).setCellValue(personal[0][0]);
-            page.getRow(78).getCell(5).setCellValue(personal[0][1]);
-            page.getRow(79).getCell(5).setCellValue(personal[0][2]);
-            page.getRow(80).getCell(5).setCellValue(personal[0][3]);
-            page.getRow(81).getCell(5).setCellValue(personal[0][4]);
-            
-            page.getRow(77).getCell(6).setCellValue(personal[1][0]);
-            page.getRow(78).getCell(6).setCellValue(personal[1][1]);
-            page.getRow(79).getCell(6).setCellValue(personal[1][2]);
-            page.getRow(80).getCell(6).setCellValue(personal[1][3]);
-            page.getRow(81).getCell(6).setCellValue(personal[1][4]);
-            int cuenta=0;
-            for (int i = 0; i < 5; i++) {
-                if(personal[0][i].equals("")){
-                    cuenta++;
-                }
+            suma = 1;
+            if(datos.perforacion){
+                suma =0;
             }
-            page.getRow(82).getCell(5).setCellValue(5-cuenta);
-            cuenta=0;
-            for (int i = 0; i < 5; i++) {
-                if(personal[1][i].equals("")){
-                    cuenta++;
-                }
-            }
-            page.getRow(82).getCell(6).setCellValue(5-cuenta);
-            
-            int total=0;
-            
-            for (int i = 0; i < 5; i++) {
-                cuenta = 0;
-                if(personal[0][i].equals("")){
-                    cuenta++;
-                }
-                if(personal[1][i].equals("")){
-                    cuenta++;
-                }
-                total+=cuenta;
-                page.getRow(77+i).getCell(7).setCellValue((2-cuenta)*12);
-            }
-            page.getRow(82).getCell(7).setCellValue((10-total)*12);
-            
-            double aux;
-            
             for(int i= 5,a = 0;i<10 ;i++ , a++){
                 if(i==9){
                     i++;
                 }
-                if(page.getRow(60).getCell(i).getNumericCellValue()!=0){
-                    aux = (piloto[a]+escariado[a])/page.getRow(60).getCell(i).getNumericCellValue();
+                double vAux1;
+                if(efectivas[a]!=0){
+                    vAux1 = (datos.metrosPiloto[a]+datos.metrosEscariado[a])/efectivas[a];
                 }else{
-                    aux = 0;
+                    vAux1 =0;
                 }
-                page.getRow(63).getCell(i).setCellValue(aux);
-            }
-            for(int i= 5;i<10 ;i++){
-                if(i==9){
-                    i++;
-                }
-                if(page.getRow(58).getCell(i).getNumericCellValue()!=0){
-                    aux = page.getRow(60).getCell(i).getNumericCellValue()/page.getRow(58).getCell(i).getNumericCellValue();
+                page.getRow(63+suma).getCell(i).setCellValue(vAux1);
+                double vAux2;
+                if(produccion[a]!=0){
+                    vAux2 = efectivas[a]/produccion[a];
                 }else{
-                    aux = 0;
+                    vAux2 = 0;
                 }
-                page.getRow(64).getCell(i).setCellValue(aux);
+                page.getRow(64+suma).getCell(i).setCellValue(vAux2);
             }
-            
+           
+           
+           
+           
             book.write(new FileOutputStream("Src/xls/Informe.xlsx"));
             
             
@@ -179,12 +166,10 @@ public class NewXls {
              JOptionPane.showMessageDialog(null, e.getMessage());
         }
     }
-    private static void multyFill(XSSFSheet page,Map<String, double[]> turnos,double turnosMes,Map<String, double[]> turnosTotal,int inicio, int total,int ultimo,int representa,boolean resta,int countMes,int countTotal){
+    private static double[] multyFill(XSSFSheet page,Map<String, double[]> turnos,int inicio, int total,int ultimo,int representa,double tot,double mes,boolean resta){
         double a = 0;
         double b = 0;
         double dia = 0;
-        double turMes = 0;
-        double turTotal =0;
         
         for (int i = 0; i < total; i++) {
             if(turnos.get(page.getRow(inicio+i).getCell(2).getStringCellValue())!=null){
@@ -201,11 +186,9 @@ public class NewXls {
                     page.getRow(inicio+i).getCell(7).setCellValue(valorC);}
                 dia+=valorC;
 
-                if(turnosTotal.get(page.getRow(inicio+i).getCell(2).getStringCellValue())!=null){
-                     turTotal+= turnosTotal.get(page.getRow(inicio+i).getCell(2).getStringCellValue())[0];
-                }
             }
         }
+        double[] r = new double[5];
         if(resta){
             page.getRow(ultimo).getCell(5).setCellValue(12.0-a);
             page.getRow(ultimo).getCell(6).setCellValue(12.0-b);
@@ -213,8 +196,9 @@ public class NewXls {
             page.getRow(representa).getCell(5).setCellValue(12.0-a);
             page.getRow(representa).getCell(6).setCellValue(12.0-b);
             page.getRow(representa).getCell(7).setCellValue(24.0-dia);
-            page.getRow(representa).getCell(8).setCellValue(12.0*countTotal-turTotal);
-            page.getRow(representa).getCell(10).setCellValue(turnosMes);
+            r[0] = 12-a;
+            r[1] = 12-b;
+            r[2] = 24-dia;
         }else{
             page.getRow(ultimo).getCell(5).setCellValue(a);
             page.getRow(ultimo).getCell(6).setCellValue(b);
@@ -222,12 +206,15 @@ public class NewXls {
             page.getRow(representa).getCell(5).setCellValue(a);
             page.getRow(representa).getCell(6).setCellValue(b);
             page.getRow(representa).getCell(7).setCellValue(dia);
-            page.getRow(representa).getCell(8).setCellValue(turTotal);
-            page.getRow(representa).getCell(10).setCellValue(turnosMes);
+            r[0] = a;
+            r[1] = b;
+            r[2] = dia;
         }
-       
-
-        
+            page.getRow(representa).getCell(8).setCellValue(tot);
+            page.getRow(representa).getCell(10).setCellValue(mes);
+            r[3] = tot;
+            r[4] = mes;   
+        return r;
     }
 
 }
