@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import Src.Configuracion;
+import org.apache.xmlbeans.impl.soap.SOAPFault;
 public class myQueries {
     public static boolean Usuario(String user,String pass){
         if(myConnection.Test()){
@@ -71,7 +72,7 @@ public class myQueries {
     //consulta de serie de tabla Equipos
     public static ArrayList<String> Equipo(String proyecto){
         if(myConnection.Test()){
-            String sql = "SELECT serie from equipo where cod_proyecto = '"+proyecto+"'";
+            String sql = "SELECT serie from equipo ";
             ArrayList<String> retorno = new ArrayList();
             try{
                 Statement sto;
@@ -541,24 +542,24 @@ public class myQueries {
                             "    c.class_informe,\n" +
                             "    case\n" +
                             "        when c.class_informe = 'interferencia' then\n" +
-                            "        sum(when a.hora_f>a.hora_i then cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60) else cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24) end \n" +
+                            "        sum(case when a.hora_f>a.hora_i then (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60) else (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24 end)\n" +
                             "        when c.class_informe = 'perforacion' then\n" +
-                            "        sum(iif(a.hora_f>a.hora_i,(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60),(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24))\n" +
+                            "        sum(case when a.hora_f>a.hora_i then (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60) else (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24 end)\n" +
                             "        when c.class_informe = 'produccion' then\n" +
                             "        (\n" +
                             "            select\n" +
-                            "            sum(iif(a.hora_f>a.hora_i,(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60),(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24))\n" +
+                            "           sum(case when a.hora_f>a.hora_i then (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60) else (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24 end)\n" +
                             "            from registro_tarea a\n" +
                             "            join registro_turno b on a.id_registro = b.id_registro\n" +
                             "            join tarea c on a.cod_tarea = c.cod_tarea\n" +
-                            "            WHERE a.id_registro LIKE '%"+proyecto+"%' and b.fecha BETWEEN DATEFROMPARTS(YEAR('"+fecha+"'),MONTH('"+fecha+"'),1) and '"+fecha+"' and c.class_informe in ('interferencia','perforacion')\n" +
+                            "            WHERE a.id_registro LIKE '%"+proyecto+"%' and extract(year from b.fecha) = extract(year from STR_TO_DATE('"+fecha+"','%Y/%m/%d')) and extract(month from b.fecha) = extract(month from STR_TO_DATE('"+fecha+"','%Y/%m/%d')) and b.fecha<=STR_TO_DATE('"+fecha+"','%Y/%m/%d') and c.class_informe in ('interferencia','perforacion')\n" +
                             "        )\n" +
                             "    end as total\n" +
                             "from registro_tarea a\n" +
                             "join registro_turno b on a.id_registro = b.id_registro\n" +
                             "join tarea c on a.cod_tarea = c.cod_tarea\n" +
-                            "WHERE a.id_registro LIKE '%"+proyecto+"%' and b.fecha BETWEEN DATEFROMPARTS(YEAR('"+fecha+"'),MONTH('"+fecha+"'),1) and '"+fecha+"'\n" +
-                            "group by c.class_informe";
+                            "WHERE a.id_registro LIKE '%"+proyecto+"%' and extract(year from b.fecha) = extract(year from STR_TO_DATE('"+fecha+"', '%Y/%m/%d')) and extract(month from b.fecha) = extract(month from STR_TO_DATE('"+fecha+"','%Y/%m/%d')) and b.fecha <= STR_TO_DATE('"+fecha+"','%Y/%m/%d')\n" +
+                            "GROUP BY  c.class_informe";
             }
             Map<String, double[]> retorno = new HashMap<>();
             try{
@@ -610,25 +611,26 @@ public class myQueries {
                             "    c.class_informe,\n" +
                             "    case\n" +
                             "        when c.class_informe = 'interferencia' then\n" +
-                            "        sum(iif(a.hora_f>a.hora_i,(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60),(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24))\n" +
+                            "        sum(case when a.hora_f>a.hora_i then (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60) else (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24 end)\n" +
                             "        when c.class_informe = 'perforacion' then\n" +
-                            "        sum(iif(a.hora_f>a.hora_i,(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60),(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24))\n" +
+                            "        sum(case when a.hora_f>a.hora_i then (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60) else (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24 end)\n" +
                             "        when c.class_informe = 'produccion' then\n" +
                             "        (\n" +
                             "            select\n" +
-                            "                sum(iif(a.hora_f>a.hora_i,(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60),(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24))\n" +
+                            "           sum(case when a.hora_f>a.hora_i then (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60) else (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24 end)\n" +
                             "            from registro_tarea a\n" +
                             "            join registro_turno b on a.id_registro = b.id_registro\n" +
                             "            join tarea c on a.cod_tarea = c.cod_tarea\n" +
-                            "            WHERE a.id_registro LIKE '%'+'"+proyecto+"'+'"+equipo+"'+'%' and b.fecha <= '"+fecha+"' and c.class_informe in ('interferencia','perforacion') and b.cod_chimenea = '"+chimenea+"'\n" +
+                            "            WHERE a.id_registro LIKE '%"+proyecto+equipo+"%' and b.fecha <= STR_TO_DATE('"+fecha+"','%Y/%m/%d') and c.class_informe in ('interferencia','perforacion') and b.cod_chimenea = '"+chimenea+"'\n" +
                             "        )\n" +
                             "    end as total\n" +
                             "from registro_tarea a\n" +
                             "join registro_turno b on a.id_registro = b.id_registro\n" +
                             "join tarea c on a.cod_tarea = c.cod_tarea\n" +
-                            "WHERE a.id_registro LIKE '%'+'"+proyecto+"'+'"+equipo+"'+'%' and b.fecha <= '"+fecha+"' and b.cod_chimenea = '"+chimenea+"'\n" +
-                            "group by c.class_informe";
+                            "WHERE a.id_registro LIKE '%"+proyecto+equipo+"%' and b.fecha <= STR_TO_DATE('"+fecha+"','%Y/%m/%d') and b.cod_chimenea = '"+chimenea+"'\n" +
+                            "GROUP BY  c.class_informe";
              }
+
             Map<String, double[]> retorno = new HashMap<>();
             try{
                 Statement sto;
@@ -677,26 +679,26 @@ public class myQueries {
             }else{
                  sql =    "select\n" +
                             "    c.class_informe,\n" +
-                            "    case -- clasificación de variables dentro de informe\n" +
+                            "    case\n" +
                             "        when c.class_informe = 'interferencia' then\n" +
-                            "        sum(iif(a.hora_f>a.hora_i,(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60),(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24))\n" +
+                            "        sum(case when a.hora_f>a.hora_i then (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60) else (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24 end)\n" +
                             "        when c.class_informe = 'blindaje' then\n" +
-                            "        sum(iif(a.hora_f>a.hora_i,(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60),(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24))\n" +
+                            "        sum(case when a.hora_f>a.hora_i then (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60) else (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24 end)\n" +
                             "        when c.class_informe = 'produccion' then\n" +
                             "        (\n" +
                             "            select\n" +
-                            "            sum(iif(a.hora_f>a.hora_i,(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60),(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24))\n" +
+                            "           sum(case when a.hora_f>a.hora_i then (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60) else (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24 end)\n" +
                             "            from registro_tarea a\n" +
                             "            join registro_turno b on a.id_registro = b.id_registro\n" +
                             "            join tarea c on a.cod_tarea = c.cod_tarea\n" +
-                            "            WHERE a.id_registro LIKE '%'+'"+proyecto+"'+'"+equipo+"'+'%' and b.fecha BETWEEN DATEFROMPARTS(YEAR('"+fecha+"'),MONTH('"+fecha+"'),1) and '"+fecha+"' and c.class_informe in ('interferencia','blindaje')\n" +
+                            "            WHERE a.id_registro LIKE '%"+proyecto+"%' and extract(year from b.fecha) = extract(year from STR_TO_DATE('"+fecha+"','%Y/%m/%d')) and extract(month from b.fecha) = extract(month from STR_TO_DATE('"+fecha+"','%Y/%m/%d')) and b.fecha<=STR_TO_DATE('"+fecha+"','%Y/%m/%d') and c.class_informe in ('interferencia','blindaje')\n" +
                             "        )\n" +
                             "    end as total\n" +
                             "from registro_tarea a\n" +
                             "join registro_turno b on a.id_registro = b.id_registro\n" +
                             "join tarea c on a.cod_tarea = c.cod_tarea\n" +
-                            "WHERE a.id_registro LIKE '%'+'"+proyecto+"'+'"+equipo+"'+'%' and b.fecha BETWEEN DATEFROMPARTS(YEAR('"+fecha+"'),MONTH('"+fecha+"'),1) and '"+fecha+"'\n" +
-                            "group by c.class_informe";
+                            "WHERE a.id_registro LIKE '%"+proyecto+"%' and extract(year from b.fecha) = extract(year from STR_TO_DATE('"+fecha+"', '%Y/%m/%d')) and extract(month from b.fecha) = extract(month from STR_TO_DATE('"+fecha+"','%Y/%m/%d')) and b.fecha <= STR_TO_DATE('"+fecha+"','%Y/%m/%d')\n" +
+                            "GROUP BY  c.class_informe";
             }
             Map<String, double[]> retorno = new HashMap<>();
             try{
@@ -745,28 +747,28 @@ public class myQueries {
                             "WHERE a.id_registro LIKE '%'+'"+proyecto+"'+'"+equipo+"'+'%' and b.cod_chimenea = '"+chimenea+"'\n" +
                             "group by c.class_informe";
             }else{
-                sql =    "select\n" +
+                sql =     "select\n" +
                             "    c.class_informe,\n" +
-                            "    case --clasificación de variables dentro de informe\n" +
+                            "    case\n" +
                             "        when c.class_informe = 'interferencia' then\n" +
-                            "        sum(iif(a.hora_f>a.hora_i,(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60),(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24))\n" +
+                            "        sum(case when a.hora_f>a.hora_i then (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60) else (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24 end)\n" +
                             "        when c.class_informe = 'blindaje' then\n" +
-                            "        sum(iif(a.hora_f>a.hora_i,(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60),(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24))\n" +
+                            "        sum(case when a.hora_f>a.hora_i then (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60) else (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24 end)\n" +
                             "        when c.class_informe = 'produccion' then\n" +
                             "        (\n" +
                             "            select\n" +
-                            "            sum(iif(a.hora_f>a.hora_i,(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60),(cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24))\n" +
+                            "           sum(case when a.hora_f>a.hora_i then (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60) else (cast(TIMESTAMPDIFF(minute,a.hora_i,a.hora_f) as float)/60)+24 end)\n" +
                             "            from registro_tarea a\n" +
                             "            join registro_turno b on a.id_registro = b.id_registro\n" +
                             "            join tarea c on a.cod_tarea = c.cod_tarea\n" +
-                            "            WHERE a.id_registro LIKE '%'+'"+proyecto+"'+'"+equipo+"'+'%' and b.cod_chimenea = '"+chimenea+"' and c.class_informe in ('interferencia','blindaje')\n" +
+                            "            WHERE a.id_registro LIKE '%"+proyecto+equipo+"%' and b.fecha <= STR_TO_DATE('"+fecha+"','%Y/%m/%d') and c.class_informe in ('interferencia','blindaje') and b.cod_chimenea = '"+chimenea+"'\n" +
                             "        )\n" +
                             "    end as total\n" +
                             "from registro_tarea a\n" +
                             "join registro_turno b on a.id_registro = b.id_registro\n" +
                             "join tarea c on a.cod_tarea = c.cod_tarea\n" +
-                            "WHERE a.id_registro LIKE '%'+'"+proyecto+"'+'"+equipo+"'+'%' and b.cod_chimenea = '"+chimenea+"'\n" +
-                            "group by c.class_informe";
+                            "WHERE a.id_registro LIKE '%"+proyecto+equipo+"%' and b.fecha <= STR_TO_DATE('"+fecha+"','%Y/%m/%d') and b.cod_chimenea = '"+chimenea+"'\n" +
+                            "GROUP BY  c.class_informe";
             }
             Map<String, double[]> retorno = new HashMap<>();
             try{
