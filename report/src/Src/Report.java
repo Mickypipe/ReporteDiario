@@ -379,10 +379,7 @@ public class Report extends javax.swing.JPanel {
             
             
             //metros piloto y escariador mes
-            String formatoMes = ("yyyy/MM");
-            SimpleDateFormat sdfMes = new SimpleDateFormat(formatoMes);
-            String id_registroMes = String.valueOf(sdfMes.format(date))+"/%"+proyecto+equipo;
-            aux = myQueries.MetrosPilotoEscariador(id_registroMes, fecha,codChimenea);
+            aux = myQueries.MetrosPilotoEscariadorMes(proyecto, fecha);
             datos.metrosPiloto[4] = aux[0];
             datos.metrosEscariado[4] = aux[1];
             }

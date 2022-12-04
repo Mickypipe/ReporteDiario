@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import Src.Configuracion;
-import org.apache.xmlbeans.impl.soap.SOAPFault;
+
 public class myQueries {
     public static boolean Usuario(String user,String pass){
         if(myConnection.Test()){
@@ -72,7 +72,11 @@ public class myQueries {
     //consulta de serie de tabla Equipos
     public static ArrayList<String> Equipo(String proyecto){
         if(myConnection.Test()){
-            String sql = "SELECT serie from equipo ";
+            String sql = "SELECT serie\n" +
+                        "FROM equipo\n" +
+                        "where categoria in ('DESARROLLO VERTICAL','BLINDAJE MECANIZADO') \n" +
+                        "and modelo != 'REDTRAX' \n" +
+                        "and cod_proyecto = '"+proyecto+"'";
             ArrayList<String> retorno = new ArrayList();
             try{
                 Statement sto;
@@ -258,6 +262,37 @@ public class myQueries {
             String sql =    " SELECT  sum(r.piloto),sum(r.escariador) FROM registro_perforacion r" +
                             " left join registro_turno t on (r.id_registro=t.id_registro) " +
                             " where estado = 'terminado' and r.id_registro like '"+turno+"' and t.fecha <= '"+fecha+"' and t.cod_chimenea = '"+where+"'";
+            try{
+                Statement sto;
+                sto = myConnection.cn.createStatement();
+                ResultSet rso = sto.executeQuery(sql);
+                while (rso.next()){
+                    retorno[0] = rso.getDouble(1);
+                    retorno[1] = rso.getDouble(2);
+                } 
+            }catch(SQLException e){System.out.println(e.getMessage());
+            System.out.println("error en metros perforacion");
+            }
+            return retorno;
+        }
+        
+        return retorno;
+    }
+    public static double[] MetrosPilotoEscariadorMes(String proyecto,String fecha){
+        double[] retorno = new double[2];
+        retorno[0]=0;
+        retorno[1]=0;
+        if(myConnection.Test()){
+             String sql ;
+            if(Configuracion.estado){
+                sql =    " SELECT  sum(r.piloto),sum(r.escariador) FROM registro_perforacion r" +
+                            " left join registro_turno t on (r.id_registro=t.id_registro) " +
+                            " where estado = 'terminado' and r.id_registro like '%"+proyecto+"%' and t.fecha BETWEEN DATEFROMPARTS(YEAR('"+fecha+"'),MONTH('"+fecha+"'),1) and '"+fecha+"'";
+            }else{
+                sql=" SELECT  sum(r.piloto),sum(r.escariador) FROM registro_perforacion r" +
+                            " left join registro_turno t on (r.id_registro=t.id_registro) " +
+                            " where estado = 'terminado' and r.id_registro like '%"+proyecto+"%' and extract(year from t.fecha) = extract(year from STR_TO_DATE('"+fecha+"', '%Y/%m/%d')) and extract(month from t.fecha) = extract(month from STR_TO_DATE('"+fecha+"','%Y/%m/%d')) and t.fecha <= STR_TO_DATE('"+fecha+"','%Y/%m/%d')";
+            }
             try{
                 Statement sto;
                 sto = myConnection.cn.createStatement();

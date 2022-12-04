@@ -11,7 +11,11 @@ public class Window extends javax.swing.JFrame {
     public Window() {
         initComponents();
         this.setMinimumSize(new Dimension(680,480));
-        setIconImage(new ImageIcon(getClass().getResource("../img/next.png")).getImage());
+        try{
+            setIconImage(new ImageIcon(getClass().getResource("next.png")).getImage());
+        }catch(Exception e){
+            System.out.println(e);
+        }
         this.setTitle("Informes Vertex");
     }
     
